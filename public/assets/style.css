@@ -453,3 +453,90 @@ p  { overflow-wrap: anywhere; }
   .detail__nav a { font-size: 0.78rem; padding: 0.6rem 0.7rem; }
   .tile__cap strong { font-size: 0.95rem; }
 }
+
+/* ===========================================================
+   Accessibility additions
+   =========================================================== */
+
+/* Skip link — hidden until focused via keyboard tab.
+   WCAG 2.4.1 Bypass Blocks. */
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 0;
+  background: var(--ink);
+  color: var(--bg);
+  padding: 0.75rem 1.25rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  z-index: 200;
+  text-decoration: none;
+  border-bottom-right-radius: 4px;
+  transition: top 200ms ease;
+}
+.skip-link:focus,
+.skip-link:focus-visible {
+  top: 0;
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Universal :focus-visible — high-contrast outline for keyboard users.
+   Replaces default browser outlines (which some browsers only show on
+   keyboard focus, inconsistently). WCAG 2.4.7. */
+:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+/* Specific elements that should not have the outline (icon buttons, text inputs) */
+.theme-toggle:focus-visible,
+.nav-toggle:focus-visible,
+.nav-close:focus-visible {
+  outline-offset: 4px;
+}
+
+/* Honor the user's system theme preference when no localStorage value is set
+   AND JS hasn't run yet. Provides a smoother first-paint experience. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --bg: #0e0d0c;
+    --bg-soft: #221f1c;
+    --bg-elev: #1a1815;
+    --ink: #ece6dd;
+    --ink-soft: #b8b0a4;
+    --ink-mute: #7d7770;
+    --line: #2e2a26;
+    --accent: #c4a87d;
+    --accent-soft: #d9c4a0;
+    --shadow: 0 2px 20px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.6);
+  }
+}
+
+/* Skip-link target — make <main id="main"> focusable but invisible until
+   programmatically focused, so the skip link works correctly. */
+#main:focus {
+  outline: none;
+}
+
+/* Make sure the <main> element doesn't inherit a focus outline when scrolled
+   to via the skip link */
+main:focus-visible {
+  outline: none;
+}
+
+/* Visually-hidden but accessible to screen readers (used for off-screen
+   labels and descriptions) */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

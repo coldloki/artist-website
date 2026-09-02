@@ -1,7 +1,14 @@
 #!/usr/bin/env python
-"""Generate the Santhiago Collection static site from santhiago.json."""
+"""Generate the Santhiago Collection static site from santhiago.json.
 
-import json, html, os
+Site URL is configurable via the SITE_URL env var, defaulting to localhost
+for local development. Set it to the public hostname (e.g. "https://art.example.com")
+when generating for a production deploy so canonical URLs and OG tags are correct.
+"""
+import json, html, os, urllib.parse
+
+# Canonical site origin. Override with SITE_URL env var.
+SITE_URL = os.environ.get("SITE_URL", "http://localhost:8080").rstrip("/")
 
 with open("_meta/santhiago.json", "r", encoding="utf-8") as f:
     cat = json.load(f)
@@ -10,6 +17,15 @@ CATS = cat["categories"]  # ordered list of dicts
 CAT_BY_SLUG = {c["slug"]: c for c in CATS}
 PAINTINGS = cat["paintings_by_cat"]
 OUT = "public"
+
+
+def absolute_url(path):
+    """Convert a relative path ('foo.html' or '/foo.html') to an absolute URL
+    using SITE_URL. Strips any leading slash on the path to avoid double slashes."""
+    if not path:
+        return SITE_URL
+    p = path.lstrip("/")
+    return f"{SITE_URL}/{p}" if p else SITE_URL
 
 
 def fmt_dims(raw):
@@ -95,11 +111,23 @@ h1{font-size:clamp(2.2rem,8vw,4.5rem);margin:0 0 .5em;line-height:1.05}
 .hero__art{position:relative;min-height:320px;background:var(--bg-soft);border-radius:4px;overflow:hidden;box-shadow:var(--shadow);max-width:100%;display:flex;align-items:center;justify-content:center}
 .hero__art img{width:100%;height:auto;display:block}
 @media (max-width:800px){.hero{grid-template-columns:1fr;padding:3rem 1.25rem 2rem;gap:1.75rem}.hero__art{order:3}.hero__meta{order:1;grid-area:auto}.hero__lead{order:1}.artist-bio{order:4}}
+/* skip link visible on focus */
+.skip-link{position:absolute;top:-100px;left:0;background:var(--ink);color:var(--bg);padding:.75rem 1.25rem;font-size:.9rem;font-weight:600;letter-spacing:.04em;z-index:200;text-decoration:none;border-bottom-right-radius:4px;transition:top 200ms ease}
+.skip-link:focus,.skip-link:focus-visible{top:0;outline:3px solid var(--accent);outline-offset:2px}
+/* focus-visible high contrast outline */
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:2px}
+/* system theme preference for unstyled load */
+@media (prefers-color-scheme:dark){:root:not([data-theme]){--bg:#0e0d0c;--bg-soft:#221f1c;--bg-elev:#1a1815;--ink:#ece6dd;--ink-soft:#b8b0a4;--ink-mute:#7d7770;--line:#2e2a26;--accent:#c4a87d;--accent-soft:#d9c4a0}}
 """
 
-def head(title, description=""):
-    css_ver = "v=2026-09-01-r24"
-    js_ver = "v=2026-09-01-r24"
+def head(title, description="", canonical_path="", og_image=None, og_type="website",
+          jsonld=None, skip_link_text="Skip to main content"):
+    css_ver = "v=2026-09-01-r26"
+    js_ver = "v=2026-09-01-r26"
+    canonical_url = absolute_url(canonical_path) if canonical_path else ""
+    if not og_image:
+        og_image = f"{SITE_URL}/assets/Antonia%20Portrait.jpg"
+    jsonld_block = (chr(10) + "  <script type=\"application/ld+json\">" + jsonld + "</script>") if jsonld else ""
     return f'''<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -110,20 +138,44 @@ def head(title, description=""):
   <meta http-equiv="Expires" content="0">
   <title>{html.escape(title)} — Antónia de Távora</title>
   <meta name="description" content="{html.escape(description)}">
+  <meta name="author" content="Antónia Camilo de Távora">
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#faf8f5" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0e0d0c" media="(prefers-color-scheme: dark)">
+  <link rel="canonical" href="{canonical_url}">
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="apple-touch-icon" href="assets/Antonia Portrait.jpg">
+  <meta http-equiv="Content-Language" content="en">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <!-- preload CSS for fonts so it starts downloading immediately -->
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600&display=swap">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600&display=swap" media="print" onload="this.media='all'">
   <link rel="preload" as="image" href="assets/Antonia Portrait.webp">
+  <!-- Open Graph (Facebook, LinkedIn, WhatsApp, iMessage) -->
+  <meta property="og:type" content="{html.escape(og_type)}">
+  <meta property="og:site_name" content="Antónia de Távora · Santhiago Collection">
+  <meta property="og:title" content="{html.escape(title)}">
+  <meta property="og:description" content="{html.escape(description)}">
+  <meta property="og:url" content="{canonical_url}">
+  <meta property="og:image" content="{og_image}">
+  <meta property="og:image:alt" content="Antónia de Távora — Santhiago Collection">
+  <meta property="og:locale" content="en_US">
+  <!-- Twitter / X Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{html.escape(title)}">
+  <meta name="twitter:description" content="{html.escape(description)}">
+  <meta name="twitter:image" content="{og_image}">
+  <meta name="twitter:image:alt" content="Antónia de Távora — Santhiago Collection">
   <!-- critical CSS inlined so first paint doesn't wait for external stylesheet -->
   <style>{CRITICAL_CSS}</style>
   <!-- full stylesheet loads asynchronously via media=print swap -->
   <link rel="stylesheet" href="assets/style.css?{css_ver}" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="assets/style.css?{css_ver}"></noscript>
-  <script>document.documentElement.setAttribute('data-theme', localStorage.getItem('antonia-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));</script>
+  <script>document.documentElement.setAttribute('data-theme', localStorage.getItem('antonia-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));</script>{jsonld_block}
 </head>
 <body>
+  <a class="skip-link" href="#main">{html.escape(skip_link_text)}</a>
 '''
 
 
@@ -157,7 +209,7 @@ def header(active=None, depth=".."):
     for href, label, path in nav_items:
         cls = ' class="is-active"' if (active and label == active) else ""
         links.append(f'<a href="{path}"{cls}>{html.escape(label)}</a>')
-    return f'''<header class="site-header">
+    return f'''<header class="site-header" role="banner">
   <div class="site-header__inner">
     <div class="brand">
       <a href="{depth}/index.html">
@@ -165,7 +217,7 @@ def header(active=None, depth=".."):
       </a>
     </div>
     {nav_toggle()}
-    <nav class="nav" id="primary-nav">
+    <nav class="nav" id="primary-nav" role="navigation" aria-label="Main">
       {nav_close()}
       {''.join(links)}
       {theme_toggle()}
@@ -180,7 +232,7 @@ def footer(depth=".."):
     # are already shown prominently in the hero on the home page. The footer
     # only carries the contact line (which is the one piece of info that's
     # useful on every page, including detail pages where there's no hero).
-    return f'''<footer class="site-footer">
+    return f'''<footer class="site-footer" role="contentinfo">
   <div>
     <h4>Contact</h4>
     <p>Antónia Camilo de Távora</p>
@@ -197,6 +249,98 @@ def footer(depth=".."):
 </footer>
 <div class="copyright">© Antónia Camilo de Távora. All artworks by the artist.</div>
 '''
+
+
+# ---------- JSON-LD structured data generators ----------
+
+def jsonld_person():
+    """Schema.org Person for the artist (used on every page via the home
+    page's graph)."""
+    return {
+        "@context": "https://schema.org",
+        "@type": "Person",
+        "@id": f"{SITE_URL}/#antonia-de-tavora",
+        "name": "Antónia Camilo de Távora",
+        "alternateName": "Maria Antónia Camilo de Távora Vasconcelos da Silva",
+        "url": SITE_URL,
+        "email": "mailto:antonia.detavora@gmail.com",
+        "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "Riedhofstrasse 23",
+            "addressLocality": "Au",
+            "postalCode": "8804",
+            "addressCountry": "CH"
+        },
+        "jobTitle": "Painter",
+        "alumniOf": [
+            {"@type": "CollegeOrUniversity", "name": "Fine Arts School of Lisbon"},
+            {"@type": "CollegeOrUniversity", "name": "University of Neuchâtel"}
+        ],
+        "knowsAbout": ["Oil painting", "Botany", "Plant physiology", "Biology"],
+        "sameAs": []
+    }
+
+
+def jsonld_collection():
+    """Schema.org Collection for the Santhiago paintings."""
+    items = []
+    for cat_slug_inner, items_list in PAINTINGS.items():
+        for p in items_list:
+            items.append({
+                "@type": "ListItem",
+                "position": p["num"],
+                "name": p["title"],
+                "url": absolute_url(f"paintings/{cat_slug_inner}/{p['slug']}.html"),
+                "image": absolute_url(p["asset_path"]),
+            })
+    return {
+        "@context": "https://schema.org",
+        "@type": "Collection",
+        "name": "Santhiago Collection",
+        "description": cat["summary"],
+        "creator": {"@id": f"{SITE_URL}/#antonia-de-tavora"},
+        "hasPart": items,
+        "url": absolute_url(""),
+    }
+
+
+def jsonld_visual_artwork(p, cat_slug):
+    """Schema.org VisualArtwork for a single painting detail page."""
+    dims = p["dimensions"].replace(" cm", "").split("/")
+    return {
+        "@context": "https://schema.org",
+        "@type": "VisualArtwork",
+        "name": p["title"],
+        "image": absolute_url(p["asset_path"]),
+        "creator": {"@id": f"{SITE_URL}/#antonia-de-tavora"},
+        "dateCreated": "2000-2004",
+        "material": "Oil on canvas",
+        "width": (dims[0] + " cm") if len(dims) > 0 else None,
+        "height": (dims[1] + " cm") if len(dims) > 1 else None,
+        "artform": "Painting",
+        "genre": cat_slug.capitalize(),
+        "isPartOf": {"@id": f"{SITE_URL}/#collection"},
+        "url": absolute_url(f"paintings/{cat_slug}/{p['slug']}.html"),
+    }
+
+
+def jsonld_webpage(title, description, canonical_path):
+    """Schema.org WebPage for category and home pages."""
+    return {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": title,
+        "description": description,
+        "url": absolute_url(canonical_path),
+        "isPartOf": {"@id": f"{SITE_URL}/#collection"},
+        "about": {"@id": f"{SITE_URL}/#antonia-de-tavora"},
+    }
+
+
+def serialize_jsonld(*items):
+    """Serialize one or more dicts as a single JSON-LD <script> with @graph."""
+    return json.dumps({"@context": "https://schema.org", "@graph": list(items)},
+                     ensure_ascii=False)
 
 
 def lightbox():
@@ -220,9 +364,12 @@ hero_asset = "assets/Antonia Portrait.jpg"
 total_paintings = sum(len(v) for v in PAINTINGS.values())
 
 home = head("Santhiago Collection — Antónia de Távora",
-            "Oil paintings by Antónia de Távora made in Cascais and Sintra, Portugal, between 2000 and 2004.") + \
+            "Oil paintings by Antónia de Távora made in Cascais and Sintra, Portugal, between 2000 and 2004.",
+            canonical_path="index.html",
+            og_type="website",
+            jsonld=serialize_jsonld(jsonld_collection(), jsonld_person())) + \
     header(depth=".") + f'''
-<main>
+<main role="main" id="main" tabindex="-1">
   <section class="hero">
     <div class="hero__lead">
       <div class="eyebrow">The Collection</div>
@@ -294,9 +441,16 @@ print(f"wrote index.html ({len(home)} bytes)")
 def make_category_page(slug):
     c = CAT_BY_SLUG[slug]
     items = PAINTINGS[slug]
-    page = head(f"{c['label']} — Santhiago Collection", c["blurb"]) + \
+    page = head(f"{c['label']} — Santhiago Collection",
+                  c["blurb"],
+                  canonical_path=f"{c['slug']}.html",
+                  og_type="website",
+                  jsonld=serialize_jsonld(jsonld_webpage(
+                      f"{c['label']} — Santhiago Collection",
+                      c["blurb"],
+                      f"{c['slug']}.html"))) + \
         header(active=c["label"], depth="..") + f'''
-<main>
+<main role="main" id="main" tabindex="-1">
   <div class="page-intro">
     <div class="eyebrow">{c["label"]}</div>
     <h1 class="serif">{c["label"]}</h1>
@@ -350,9 +504,17 @@ def make_detail_page(slug, idx):
     )
 
     page = head(f"{p['title']} — Santhiago Collection",
-                f"{p['title']} by Antónia Camilo de Távora. {p['medium']}, {fmt_dims(p['dimensions'])}.") + \
+                f"{p['title']} by Antónia Camilo de Távora. {p['medium']}, {fmt_dims(p['dimensions'])}.",
+                canonical_path=f"paintings/{slug}/{p['slug']}.html",
+                og_type="article",
+                jsonld=serialize_jsonld(
+                    jsonld_visual_artwork(p, slug),
+                    jsonld_webpage(
+                        f"{p['title']} — Santhiago Collection",
+                        f"{p['title']} by Antónia Camilo de Távora. {p['medium']}, {fmt_dims(p['dimensions'])}.",
+                        f"paintings/{slug}/{p['slug']}.html"))) + \
         header(active=c["label"], depth="../..") + f'''
-<main>
+<main role="main" id="main" tabindex="-1">
   <div class="detail">
     <div class="detail__img">
       <picture>
@@ -389,3 +551,49 @@ for c in CATS:
             f.write(page)
         count += 1
 print(f"wrote {count} detail pages")
+
+# ---------- Sitemap & robots.txt ----------
+
+def build_sitemap():
+    """Generate a sitemap.xml covering every page on the site."""
+    urls = [
+        ("",         "1.0", "weekly"),  # home
+        ("portraits.html",       "0.9", "monthly"),
+        ("natures-mortes.html",   "0.9", "monthly"),
+        ("paisagens.html",        "0.9", "monthly"),
+    ]
+    for c in CATS:
+        urls.append((f"{c['slug']}.html", "0.9", "monthly"))
+        for p in PAINTINGS[c["slug"]]:
+            urls.append((f"paintings/{c['slug']}/{p['slug']}.html", "0.7", "yearly"))
+    lastmod = "2026-09-02"
+    lines = ['<?xml version="1.0" encoding="UTF-8"?>',
+             '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
+    for path, prio, freq in urls:
+        lines.append("  <url>")
+        lines.append(f"    <loc>{absolute_url(path)}</loc>")
+        lines.append(f"    <lastmod>{lastmod}</lastmod>")
+        lines.append(f"    <changefreq>{freq}</changefreq>")
+        lines.append(f"    <priority>{prio}</priority>")
+        lines.append("  </url>")
+    lines.append("</urlset>")
+    return "\n".join(lines) + "\n"
+
+
+def build_robots():
+    """Generate robots.txt that allows all crawlers and points to sitemap."""
+    return f"""User-agent: *
+Allow: /
+
+Sitemap: {absolute_url("sitemap.xml")}
+"""
+
+
+# Write sitemap.xml and robots.txt
+with open(f"{OUT}/sitemap.xml", "w", encoding="utf-8") as f:
+    f.write(build_sitemap())
+print(f"wrote sitemap.xml ({len(build_sitemap())} bytes)")
+
+with open(f"{OUT}/robots.txt", "w", encoding="utf-8") as f:
+    f.write(build_robots())
+print(f"wrote robots.txt")
