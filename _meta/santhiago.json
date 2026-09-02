@@ -1,0 +1,179 @@
+{
+  "collection": "Santhiago Collection",
+  "summary": "Oil Paintings by Antónia de Tavora made in Cascais and Sintra, Portugal, between 2000-2004.",
+  "categories": [
+    {
+      "slug": "portraits",
+      "label": "Portraits",
+      "blurb": "Faces and figures from the artist's early years in Portugal."
+    },
+    {
+      "slug": "natures-mortes",
+      "label": "Naturezas Mortas",
+      "blurb": "Still lifes — flowers, vessels, and quiet domestic scenes."
+    },
+    {
+      "slug": "paisagens",
+      "label": "Paisagens",
+      "blurb": "Coastal landscapes of Cascais, Sintra and the Algarve."
+    }
+  ],
+  "paintings_by_cat": {
+    "portraits": [
+      {
+        "num": 1,
+        "title": "Bahama Mama",
+        "dimensions": "50/70 cm",
+        "medium": "Oil on canvas",
+        "image_file": "_MAG9969.jpg",
+        "category": "portraits",
+        "slug": "bahama-mama",
+        "asset_path": "assets/_MAG9969.jpg"
+      },
+      {
+        "num": 2,
+        "title": "Rapariga com Jarros",
+        "dimensions": "45/65 cm",
+        "medium": "Oil on canvas",
+        "image_file": "_MAG9965.jpg",
+        "category": "portraits",
+        "slug": "rapariga-com-jarros",
+        "asset_path": "assets/_MAG9965.jpg"
+      },
+      {
+        "num": 3,
+        "title": "Retrato de rapariga no Cais",
+        "dimensions": "40/50 cm",
+        "medium": "Oil on canvas",
+        "image_file": "_MAG9963.jpg",
+        "category": "portraits",
+        "slug": "retrato-de-rapariga-no-cais",
+        "asset_path": "assets/_MAG9963.jpg"
+      },
+      {
+        "num": 4,
+        "title": "Dona Catherine Howes",
+        "dimensions": "65/92 cm",
+        "medium": "Oil on canvas",
+        "image_file": "_MAG9972.jpg",
+        "category": "portraits",
+        "slug": "dona-catherine-howes",
+        "asset_path": "assets/_MAG9972.jpg"
+      },
+      {
+        "num": 5,
+        "title": "Mãe",
+        "dimensions": "30/40 cm",
+        "medium": "Oil on canvas",
+        "image_file": "_MAG9982.jpg",
+        "category": "portraits",
+        "slug": "mae",
+        "asset_path": "assets/_MAG9982.jpg"
+      }
+    ],
+    "natures-mortes": [
+      {
+        "num": 6,
+        "title": "Tea time",
+        "dimensions": "60/70 cm",
+        "medium": "Oil on canvas",
+        "image_file": "_MAG9956.jpg",
+        "category": "natures-mortes",
+        "slug": "tea-time",
+        "asset_path": "assets/_MAG9956.jpg"
+      },
+      {
+        "num": 7,
+        "title": "Esterlícias em vaso Chinês",
+        "dimensions": "50/100 cm",
+        "medium": "Oil on canvas",
+        "image_file": "_MAG9959.jpg",
+        "category": "natures-mortes",
+        "slug": "esterlicias-em-vaso-chines",
+        "asset_path": "assets/_MAG9959.jpg"
+      },
+      {
+        "num": 8,
+        "title": "Pavões",
+        "dimensions": "60/100 cm",
+        "medium": "Oil on canvas",
+        "image_file": "_MAG0002.jpg",
+        "category": "natures-mortes",
+        "slug": "pavoes",
+        "asset_path": "assets/_MAG0002.jpg"
+      },
+      {
+        "num": 9,
+        "title": "Glicínias no Pátio",
+        "dimensions": "92/65 cm",
+        "medium": "Oil on canvas",
+        "image_file": "_MAG9955.jpg",
+        "category": "natures-mortes",
+        "slug": "glicinias-no-patio",
+        "asset_path": "assets/_MAG9955.jpg"
+      },
+      {
+        "num": 10,
+        "title": "Terrina de Flores",
+        "dimensions": "100/100 cm",
+        "medium": "Oil on canvas",
+        "image_file": "_MAG9947.jpg",
+        "category": "natures-mortes",
+        "slug": "terrina-de-flores",
+        "asset_path": "assets/_MAG9947.jpg"
+      },
+      {
+        "num": 11,
+        "title": "Natureza Morta em Colares",
+        "dimensions": "100/60 cm",
+        "medium": "Oil on canvas",
+        "image_file": "_MAG9953.jpg",
+        "category": "natures-mortes",
+        "slug": "natureza-morta-em-colares",
+        "asset_path": "assets/_MAG9953.jpg"
+      }
+    ],
+    "paisagens": [
+      {
+        "num": 12,
+        "title": "Cascais Plage",
+        "dimensions": "60/100 cm",
+        "medium": "Oil on canvas",
+        "image_file": "_MAG9974.jpg",
+        "category": "paisagens",
+        "slug": "cascais-plage",
+        "asset_path": "assets/_MAG9974.jpg"
+      },
+      {
+        "num": 13,
+        "title": "Ilha de Faro",
+        "dimensions": "65/54 cm",
+        "medium": "Oil on canvas",
+        "image_file": "_MAG9977.jpg",
+        "category": "paisagens",
+        "slug": "ilha-de-faro",
+        "asset_path": "assets/_MAG9977.jpg"
+      },
+      {
+        "num": 14,
+        "title": "Farol de Santa Marta",
+        "dimensions": "60/30 cm",
+        "medium": "Oil on canvas",
+        "image_file": "_MAG9980.jpg",
+        "category": "paisagens",
+        "slug": "farol-de-santa-marta",
+        "asset_path": "assets/_MAG9980.jpg"
+      },
+      {
+        "num": 15,
+        "title": "Guia",
+        "dimensions": "60/50 cm",
+        "medium": "Oil on canvas",
+        "image_file": "_MAG9979.jpg",
+        "category": "paisagens",
+        "slug": "guia",
+        "asset_path": "assets/_MAG9979.jpg"
+      }
+    ]
+  }
+}

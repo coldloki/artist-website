@@ -1,0 +1,20 @@
+# Generated artifacts (rebuilt via build.py from _meta/santhiago.json)
+public/index.html
+public/portraits.html
+public/natures-mortes.html
+public/paisagens.html
+public/paintings/
+
+# Python build cache
+__pycache__/
+*.pyc
+
+# Local editor/OS files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Local env files
+.env
+.env.local
