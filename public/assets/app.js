@@ -2,7 +2,7 @@
    Santhiago Collection — gallery interactivity
    - Theme toggle (light/dark, persisted)
    - Hamburger nav toggle on small screens
-   - Lightbox for grid tiles
+   - Lightbox for grid tiles (with focus trap)
    =========================================================== */
 
 (function () {
@@ -59,9 +59,16 @@
         navToggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
         document.body.classList.toggle('nav-open', open);
         document.body.style.overflow = open ? 'hidden' : '';
+        if (open) {
+          // Move focus into the overlay for keyboard users
+          const firstLink = nav.querySelector('a, button');
+          if (firstLink) firstLink.focus();
+        } else {
+          // Return focus to the toggle button
+          navToggle.focus();
+        }
       };
       navToggle.addEventListener('click', () => setOpen(!nav.classList.contains('is-open')));
-      // The big "Close" button inside the overlay
       if (navClose) {
         navClose.addEventListener('click', (e) => {
           e.preventDefault();
@@ -69,54 +76,83 @@
           setOpen(false);
         });
       }
-      // Close the menu when a nav link is tapped (so the page transition feels clean)
       nav.querySelectorAll('a').forEach(a => {
         a.addEventListener('click', () => setOpen(false));
       });
-      // Close on Escape
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && nav.classList.contains('is-open')) setOpen(false);
       });
-      // Close when tapping the overlay background (but not when tapping a link or button)
       nav.addEventListener('click', (e) => {
         if (e.target === nav) setOpen(false);
       });
     }
 
-    // Lightbox wiring
+    // Lightbox wiring — with focus trap
     const lb = document.querySelector('.lightbox');
     const lbImg = lb ? lb.querySelector('img') : null;
     if (lb && lbImg) {
-      document.querySelectorAll('[data-lightbox]').forEach(el => {
-        el.addEventListener('click', (e) => {
-          if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
-          e.preventDefault();
-          const src = el.getAttribute('data-lightbox');
-          // Prefer the WebP full-size variant for the lightbox if it exists.
-          // The lightbox always shows the largest available image, so the JPEG
-          // fallback inside the <picture> only matters if WebP generation failed.
-          const webpSrc = src.replace(/\.(jpe?g|png)$/i, '.webp');
-          lbImg.src = webpSrc;
-          lbImg.alt = el.getAttribute('data-lightbox-title') || '';
-          lb.classList.add('is-open');
-          lb.setAttribute('aria-hidden', 'false');
-          document.body.style.overflow = 'hidden';
-        });
-      });
+      // Remember which element opened the lightbox so we can return focus
+      let lbPrevFocus = null;
 
-      function close() {
+      function openLb(src, title, opener) {
+        const webpSrc = src.replace(/\.(jpe?g|png)$/i, '.webp');
+        lbImg.src = webpSrc;
+        lbImg.alt = title || '';
+        lb.classList.add('is-open');
+        lb.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+        lbPrevFocus = opener || document.activeElement;
+        // Focus the close button so screen reader users land somewhere sensible
+        const closeBtn = lb.querySelector('.lightbox__close');
+        if (closeBtn) closeBtn.focus();
+      }
+
+      function closeLb() {
         lb.classList.remove('is-open');
         lb.setAttribute('aria-hidden', 'true');
         document.body.style.overflow = '';
         setTimeout(() => { lbImg.src = ''; }, 200);
+        // Restore focus to the element that opened the lightbox
+        if (lbPrevFocus && typeof lbPrevFocus.focus === 'function') {
+          lbPrevFocus.focus();
+        }
       }
 
+      // Focus trap: when tabbing inside the lightbox, cycle between the image
+      // and the close button (the only focusable elements).
+      lb.addEventListener('keydown', (e) => {
+        if (e.key !== 'Tab' || !lb.classList.contains('is-open')) return;
+        const focusable = lb.querySelectorAll('button, [tabindex]:not([tabindex="-1"])');
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      });
+
+      document.querySelectorAll('[data-lightbox]').forEach(el => {
+        el.addEventListener('click', (e) => {
+          if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+          e.preventDefault();
+          openLb(
+            el.getAttribute('data-lightbox'),
+            el.getAttribute('data-lightbox-title') || '',
+            el
+          );
+        });
+      });
+
       lb.addEventListener('click', (e) => {
-        if (e.target === lb || e.target.classList.contains('lightbox__close')) close();
+        if (e.target === lb || e.target.classList.contains('lightbox__close')) closeLb();
       });
 
       document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && lb.classList.contains('is-open')) close();
+        if (e.key === 'Escape' && lb.classList.contains('is-open')) closeLb();
       });
     }
   });
